@@ -1,6 +1,6 @@
 require('dotenv').config();
 const fs = require('fs');
-const { Client , GatewayIntentBits } = require('discord.js');
+const { Client , GatewayIntentBits , Events } = require('discord.js');
 
 const client = new Client({
   intents: [
@@ -10,7 +10,8 @@ const client = new Client({
   ]
 });
 
-client.on('ready', () => {
+
+function getCurrentUTC() {
   const now = new Date();
   const formattedUTC = now.toLocaleString('en-IN', {
   timeZone: 'UTC',
@@ -22,7 +23,10 @@ client.on('ready', () => {
   minute: '2-digit',
   second: '2-digit'
 });
-  const logEntry = `✅ Bot logged in as ${client.user.tag} at ${formattedUTC}\n`;
+  return formattedUTC;
+}
+client.on('ready', () => {
+  const logEntry = `✅ Bot logged in as ${client.user.tag} at ${getCurrentUTC()}\n`;
   console.log(logEntry); // Console log
   fs.appendFileSync('logs/login-logs.txt', logEntry); // Save to file
 });
@@ -30,6 +34,23 @@ client.on('ready', () => {
 client.on('messageCreate', message => {
   if (message.mentions.has(client.user) && !message.author.bot) {
     message.reply("Hey! You mentioned me?");
+  }
+});
+
+client.on(Events.InteractionCreate, async interaction => {
+  if (!interaction.isChatInputCommand()) return;
+
+  if (interaction.commandName === 'activebadge') {
+    await interaction.reply({
+      content: `👨‍💻 The **Active Developer Badge** is granted by Discord.
+
+To qualify:
+- You must have used an interaction (e.g., slash command) in the last 30 days.
+- Visit: https://discord.com/developers/active-developer
+
+This bot supports interactions, so you're on the right track!`,
+      ephemeral: true
+    });
   }
 });
 
